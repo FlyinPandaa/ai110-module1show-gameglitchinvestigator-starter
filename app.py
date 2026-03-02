@@ -7,7 +7,8 @@ def get_range_for_difficulty(difficulty: str):
     if difficulty == "Normal":
         return 1, 100
     if difficulty == "Hard":
-        return 1, 50
+        # Fix: make Hard range larger than Normal
+        return 1, 200
     return 1, 100
 
 
@@ -35,16 +36,18 @@ def check_guess(guess, secret):
 
     try:
         if guess > secret:
-            return "Too High", "📈 Go HIGHER!"
+            # Fix: When guess is greater than the secret, instruct to go LOWER.
+            return "Too High", "📈 Go LOWER!"
         else:
-            return "Too Low", "📉 Go LOWER!"
+            # Fix: When guess is lower than the secret, instruct to go HIGHER.
+            return "Too Low", "📉 Go HIGHER!"
     except TypeError:
         g = str(guess)
         if g == secret:
             return "Win", "🎉 Correct!"
         if g > secret:
-            return "Too High", "📈 Go HIGHER!"
-        return "Too Low", "📉 Go LOWER!"
+            return "Too High", "📈 Go LOWER!"
+        return "Too Low", "📉 Go HIGHER!"
 
 
 def update_score(current_score: int, outcome: str, attempt_number: int):
@@ -89,8 +92,22 @@ low, high = get_range_for_difficulty(difficulty)
 st.sidebar.caption(f"Range: {low} to {high}")
 st.sidebar.caption(f"Attempts allowed: {attempt_limit}")
 
+# Fix: Ensure secret is present and valid for the selected difficulty.
+# If the difficulty changed, or the stored secret is outside the current
+# low..high range, regenerate the secret so it's always playable.
 if "secret" not in st.session_state:
     st.session_state.secret = random.randint(low, high)
+    st.session_state.prev_difficulty = difficulty
+else:
+    # Fix: Regenerate secret when difficulty changes or secret is out of range
+    if st.session_state.get("prev_difficulty") != difficulty or not (
+        low <= st.session_state.secret <= high
+    ):
+        st.session_state.secret = random.randint(low, high)
+        st.session_state.attempts = 1
+        st.session_state.status = "playing"
+        st.session_state.history = []
+    st.session_state.prev_difficulty = difficulty
 
 if "attempts" not in st.session_state:
     st.session_state.attempts = 1
@@ -107,7 +124,9 @@ if "history" not in st.session_state:
 st.subheader("Make a guess")
 
 st.info(
-    f"Guess a number between 1 and 100. "
+    # FIX: use dynamic low/high so the UI shows the correct range
+    # for the currently selected difficulty instead of the hardcoded 1-100.
+    f"Guess a number between {low} and {high}. "
     f"Attempts left: {attempt_limit - st.session_state.attempts}"
 )
 
@@ -132,8 +151,12 @@ with col3:
     show_hint = st.checkbox("Show hint", value=True)
 
 if new_game:
-    st.session_state.attempts = 0
-    st.session_state.secret = random.randint(1, 100)
+    # Fix: reset attempts to 1 to match the initial session_state setup
+    # (initial code sets attempts to 1 when starting a new session).
+    # Also use the difficulty-specific range (low, high) when generating
+    # a new secret instead of always using 1..100.
+    st.session_state.attempts = 1
+    st.session_state.secret = random.randint(low, high)
     st.success("New game started.")
     st.rerun()
 

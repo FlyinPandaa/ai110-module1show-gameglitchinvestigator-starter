@@ -8,6 +8,15 @@ Answer each question in 3 to 5 sentences. Be specific and honest about what actu
 - List at least two concrete bugs you noticed at the start  
   (for example: "the secret number kept changing" or "the hints were backwards").
 
+| Bug | Details |
+|---|---|
+| Hardcoded UI message | App showed "Guess a number between 1 and 100." regardless of difficulty; changed to use `low`/`high` and ensured new games pick secrets within the selected range. |
+| Difficulty range mismatch | "Hard" used range 1–50 (smaller than "Normal" 1–100), which can make the game easier; propose updating `get_range_for_difficulty("Hard")` to a larger range (e.g., 1–200) or rebalancing ranges. |
+| Secret number staleness | Secret is only generated when `secret` is absent, so changing difficulty can leave the secret outside the new range; propose regenerating the secret when difficulty changes or when the stored secret falls outside `low`..`high`. |
+| Inverted hint messages | Hints show the wrong direction (e.g., "Too High" displays "Go HIGHER!"); propose swapping the hint text so messages match the comparison outcome. |
+
+
+
 ---
 
 ## 2. How did you use AI as a teammate?
