@@ -59,3 +59,17 @@ Answer each question in 3 to 5 sentences. Be specific and honest about what actu
 - In one or two sentences, describe how this project changed the way you think about AI generated code.
 
 - One habit is highlighting lines where I want Copilot to look at. Next time I want to spend more time reading through the what Copilot says. Sometimes, Copilot spits out a wall of text that I just briefly skim through the bullet points and then move on. Next time I want to spend more time reading through and understand everything Copilot says. Before this project, I never messed with Copilot too much, but I'm realizing just how powerful Copilot and these AI models are when it comes to coding tasks. It also made me realize the importance of writing detailed prompts, so that the AI models can give me the output I wanted. 
+
+---
+
+## 6. Additional Bugs Found and Fixed (Post-Review)
+
+After a deeper review of the codebase, five more bugs were identified and fixed.
+
+| Bug | What Changed |
+|---|---|
+| Duplicate logic functions in `app.py` | `app.py` contained its own copies of all four game logic functions, completely disconnected from `logic_utils.py`. Removed the duplicates and added a single `from logic_utils import ...` statement so both files share one source of truth. |
+| Type-confusion string casting | On every even-numbered attempt, the secret was cast to a string before being passed to `check_guess`, causing alphabetical string comparisons (e.g., `"9" > "50"` → `True`) that produced wrong hints and made it impossible to win on those turns. Removed the conditional cast so the secret is always compared as an `int`. |
+| New game didn't fully reset state | Clicking "New Game" only regenerated the secret and reset attempts — it left `status` stuck as `"won"` or `"lost"` and kept the old score, so the game immediately ended again on the next round. The new game block now also resets `status`, `score`, and `history`. |
+| Off-by-one in attempts counter | `attempts` was initialized to `1` and incremented before the first guess was evaluated, so the "Attempts left" display was always one short. Changed the initial value to `0` so the counter accurately reflects how many guesses have been used. |
+| Wrong guesses could reward points | `update_score` added `+5` points for "Too High" guesses on even-numbered attempts, meaning incorrect answers sometimes increased the score. Collapsed both wrong-guess branches into a flat `−5` penalty so only correct guesses ever add points. |
